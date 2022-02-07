@@ -1,70 +1,100 @@
-import pyttsx3
-import speech_recognition as sr
+import pyttsx3 
+import speech_recognition as sr 
 import datetime
-import wikipedia
+import wikipedia 
 import webbrowser
 import os
 import smtplib
-MASTER= "MIHIR"
 
-print("Initialising Jarvis")
-
-engine=pyttsx3.init('sapi5')
-voices=engine.getProperty('voices')
+engine = pyttsx3.init('sapi5')
+voices = engine.getProperty('voices')
 engine.setProperty('voice', voices[0].id)
-# Speak func will pronounce the string which is passedto it 
-def speak(text):
-    engine.say(text)
+
+def speak(audio):
+    engine.say(audio)
     engine.runAndWait()
 
-#this func will wish u according to time
 def wishMe():
-    hour= int(datetime.datetime.now().hour)
-#    print(hour)
+    hour = int(datetime.datetime.now().hour)
     if hour>=0 and hour<12:
-        speak("Good Morning"+ MASTER)
-    elif hour>=12 and hour<18:
-        speak("Good Afternoon"+ MASTER)
-    else:
-        speak("Good Evening"+ MASTER)
-    #speak("I am Jarvis. How may i help you ")
+        speak("Good Morning! Mihir")
 
-#this func will take input from microphone 
+    elif hour>=12 and hour<18:
+        speak("Good Afternoon! Mihir")   
+
+    else:
+        speak("Good Evening! Mihir")  
+
+    speak("I am NEO from matrix of Universe. How can I help you sir!")       
+
 def takeCommand():
-    r=sr.Recognizer()
+      r = sr.Recognizer()
     with sr.Microphone() as source:
-        print("LISTENing...")
+        print("Listening...")
+        r.pause_threshold = 1
         audio = r.listen(source)
-    
+
     try:
-        print("Recognizing")
-        query=r.recognize_google(audio, language='en-in')
-        print(f"user said : {query}\n")
+        print("Recognizing...")    
+        query = r.recognize_google(audio, language='en-in')
+        print(f"User said: {query}\n")
 
     except Exception as e:
-        print("SAy that again please")
-        query= None
+        # print(e)    
+        print("Say that again please...")  
+        return "None"
     return query
-    
 
-#Main program starts here
-speak("Initialising Jarvis...")
-wishMe()
-query = takeCommand()
+def sendEmail(to, content):
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.ehlo()
+    server.starttls()
+    server.login('mihirtarush@gmail.com', 'password') #I have hidden my password for privacy concern. 
+    server.sendmail('sid.mihir123@gmail.com', to, content)
+    server.close()
 
-#logic for executing basi tasks as per the query
-if 'wikipedia' in query.lower():
-    speak('Searching wikipedia...')
-    query= query.replace("wikipedia","")
-    results = wikipedia.summary(query, sentences = 2)
-    print(results)
-    speak(results)
-elif 'open youtube' in query.lower():
-   # webbrowser.open("youtube.com")
-    
-elif 'play music' in query.lower():
-    songs = os.listdir()
-    print(songs)
+if __name__ == "__main__":
+    wishMe()
+    while True:
+    # if 1:
+        query = takeCommand().lower()
+
+        # Logic for executing tasks based on query
+        if 'wikipedia' in query:
+            speak('Searching Wikipedia...')
+            query = query.replace("wikipedia", "")
+            results = wikipedia.summary(query, sentences=2)
+            speak("According to Wikipedia")
+            print(results)
+            speak(results)
+
+        elif 'open youtube' in query:
+            webbrowser.open("youtube.com")
+
+        elif 'open google' in query:
+            webbrowser.open("google.com")
+
+        elif 'open stackoverflow' in query:
+            webbrowser.open("stackoverflow.com")   
 
 
+        elif 'play music' in query:
+            music_dir = 'Music'
+            songs = os.listdir(music_dir)
+            print(songs)    
+            os.startfile(os.path.join(music_dir, songs[0]))
 
+        elif 'the time' in query:
+            strTime = datetime.datetime.now().strftime("%H:%M:%S")    
+            speak(f"Sir, the time is {strTime}")
+
+        elif 'email to Mihir' in query:
+            try:
+                speak("What should I say?")
+                content = takeCommand()
+                to = "sid.mihir123@gmail.com"    
+                sendEmail(to, content)
+                speak("I have sent the mail Sir")
+            except Exception as e:
+                print(e)
+                speak("Oops, I encountered an error in matrix and That assigned task could not be completed.")  
